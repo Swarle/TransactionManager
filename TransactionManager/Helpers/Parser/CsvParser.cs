@@ -12,6 +12,10 @@ public static class CsvParser
         if (file.Length == 0)
             throw new InvalidDataException("File is empty of not provided");
 
+        var extension = Path.GetExtension(file.FileName);
+        if (extension != ".csv")
+            throw new InvalidDataException("File is not a CSV");
+        
         var result = new List<TEntity>();
 
         using var stream = new StreamReader(file.OpenReadStream());
@@ -21,7 +25,8 @@ public static class CsvParser
         while (!stream.EndOfStream)
         {
             var line = await stream.ReadLineAsync() ?? 
-                       throw new Exception("Unable to read line"); //TODO: Change exception type
+                       throw new InvalidOperationException("Unable to read line");
+            
             var values = ParseCsvLine(line);
 
             var csvData = new Dictionary<string, string>();

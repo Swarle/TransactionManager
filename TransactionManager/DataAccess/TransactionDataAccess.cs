@@ -8,10 +8,12 @@ namespace TransactionManager.DataAccess;
 public class TransactionDataAccess : ITransactionDataAccess
 {
     private readonly SqlConnectionFactory _connectionFactory;
+    private readonly ILogger<TransactionDataAccess> _logger;
 
-    public TransactionDataAccess(SqlConnectionFactory connectionFactory)
+    public TransactionDataAccess(SqlConnectionFactory connectionFactory, ILogger<TransactionDataAccess> logger)
     {
         _connectionFactory = connectionFactory;
+        _logger = logger;
     }
 
     public async Task UpsertTransactionsAsync(List<Transaction> transactions, CancellationToken cancellationToken)
@@ -19,7 +21,7 @@ public class TransactionDataAccess : ITransactionDataAccess
         await using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
 
-        const string request = @"INSERT INTO TRANSACTION
+        const string request = @"INSERT INTO ""Transactions""
                             (""TransactionId"", ""Name"", ""Email"", ""Amount"", ""TransactionDateUtc"", ""TransactionTimezone"", ""Latitude"", ""Longitude"")
                             VALUES (@TransactionId, @Name, @Email, @Amount, @TransactionDateUtc, @TransactionTimezone, @Latitude, @Longitude)
                                 ON CONFLICT(""TransactionId"") 
@@ -31,8 +33,11 @@ public class TransactionDataAccess : ITransactionDataAccess
                                     ""TransactionTimezone"" = EXCLUDED.""TransactionTimezone"",
                                     ""Latitude"" = EXCLUDED.""Latitude"",
                                     ""Longitude"" = EXCLUDED.""Longitude"";";
+        
+        _logger.LogInformation("Executing SQL: {Request} with number of entities {NumberOfEntities}", request, transactions.Count);
 
-
-        await connection.ExecuteAsync(request, transactions);
+        var affectedRowsCount = await connection.ExecuteAsync(request, transactions);
+        
+        _logger.LogInformation("The request was successfully executed, number of affected rows {AffectedRowsCount}", affectedRowsCount);
     }
 }

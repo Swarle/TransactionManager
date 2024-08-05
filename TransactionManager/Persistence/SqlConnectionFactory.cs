@@ -1,4 +1,4 @@
-﻿using System.Data.SqlClient;
+﻿using Npgsql;
 
 namespace TransactionManager.Persistence;
 
@@ -11,8 +11,8 @@ public class SqlConnectionFactory
         _connectionString = connectionString;
     }
 
-    public SqlConnection CreateConnection()
+    public NpgsqlConnection CreateConnection()
     {
-        return new SqlConnection(_connectionString);
+        return new NpgsqlConnection(_connectionString);
     }
 }

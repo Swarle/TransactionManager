@@ -1,5 +1,6 @@
 using TimeZoneConverter;
 using TransactionManager.Extensions;
+using TransactionManager.Middlewares;
 
 namespace TransactionManager;
 
@@ -23,6 +24,8 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+
+        app.UseApiExceptionMiddleware();
         
         app.UseHttpsRedirection();
 

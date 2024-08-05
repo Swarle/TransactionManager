@@ -1,6 +1,7 @@
-﻿using TransactionManager.DataAccess.Interfaces;
+﻿using System.Net;
+using TransactionManager.DataAccess.Interfaces;
 using TransactionManager.Entities;
-using TransactionManager.Helpers;
+using TransactionManager.Exceptions;
 using TransactionManager.Helpers.Parser;
 using TransactionManager.Helpers.Parser.Mappers;
 using TransactionManager.Services.Interfaces;
@@ -18,9 +19,23 @@ public class TransactionService : ITransactionService
 
     public async Task UpsertAsync(IFormFile file, CancellationToken cancellationToken)
     {
-        var transactionCsvMapper = new TransactionCsvMapper();
-        var transactions = await CsvParser.ParseCsvToEntities(file,transactionCsvMapper);
+        var transactions = await ParseFromCsvToEntityList(file);
+        
+        await _transactionDataAccess.UpsertTransactionsAsync(transactions, cancellationToken);
+    }
+    
+    private static async Task<List<Transaction>> ParseFromCsvToEntityList(IFormFile file)
+    {
+        try
+        {
+            var transactionCsvMapper = new TransactionCsvMapper();
+            var transactions = await CsvParser.ParseCsvToEntities(file, transactionCsvMapper);
 
-        Console.ReadLine();
+            return transactions;
+        }
+        catch (InvalidDataException ex)
+        {
+            throw new HttpException(HttpStatusCode.BadRequest, ex.Message);
+        }
     }
 }

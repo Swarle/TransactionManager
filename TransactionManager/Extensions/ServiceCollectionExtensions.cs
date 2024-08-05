@@ -4,6 +4,7 @@ using TransactionManager.DataAccess.Interfaces;
 using TransactionManager.Persistence;
 using TransactionManager.Services;
 using TransactionManager.Services.Interfaces;
+using TransactionManager.StaticConstants;
 
 namespace TransactionManager.Extensions;
 
@@ -13,11 +14,11 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(opt =>
-            opt.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            opt.UseNpgsql(configuration.GetConnectionString(SD.DefaultConnectionStringName)));
 
         services.AddSingleton(_ =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection") ??
+            var connectionString = configuration.GetConnectionString(SD.DefaultConnectionStringName) ??
                         throw new NullReferenceException("The connection period is not specified in the settings");;
             
             return new SqlConnectionFactory(connectionString);
