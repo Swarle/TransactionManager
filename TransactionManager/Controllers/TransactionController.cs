@@ -1,6 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using TransactionManager.Dto;
+using TransactionManager.Entities;
 using TransactionManager.Services.Interfaces;
+using TransactionManager.StaticConstants;
 
 namespace TransactionManager.Controllers;
 
@@ -22,5 +25,14 @@ public class TransactionController : ControllerBase
         await _transactionService.UpsertAsync(file, cancellationToken);
 
         return Ok();
+    }
+
+    [HttpPost("export/excel")]
+    public async Task<ActionResult<byte[]>> ExportTransactionsAsync([FromBody] ExportTransactionDto? exportTransactionDto,
+        CancellationToken cancellationToken = default)
+    {
+        var stream = await _transactionService.ExportTransactionsAsync(exportTransactionDto, cancellationToken);
+
+        return File(stream, SD.ExcelContentType, $"transactions.xlsx");
     }
 }

@@ -1,4 +1,3 @@
-using TimeZoneConverter;
 using TransactionManager.Extensions;
 using TransactionManager.Middlewares;
 
@@ -13,9 +12,11 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
-        builder.Services.AddApplicationServices(builder.Configuration);
+        builder.Services.AddHttpContextAccessor();
         
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddApplicationServices(builder.Configuration);
+
+        builder.Services.AddSwaggerGenConfigured();
 
         var app = builder.Build();
         

@@ -20,7 +20,7 @@ public class TransactionCsvMapper : IEntityCsvMapper<Transaction>
             Name = csvData["name"],
             Email = csvData["email"],
             Amount = decimal.Parse(csvData["amount"].Replace("$", ""), CultureInfo.InvariantCulture),
-            TransactionDateUtc = ConvertToUtc(csvData["transaction_date"], timezoneId),
+            TransactionDateUtc = TimeHelper.ConvertToUtc(csvData["transaction_date"], timezoneId),
             TransactionTimezone = timezoneId,
             Latitude = latitude,
             Longitude = longitude
@@ -30,15 +30,6 @@ public class TransactionCsvMapper : IEntityCsvMapper<Transaction>
     private static string GetTimezoneFromLocation(double latitude, double longitude)
     {
         return TimeZoneLookup.GetTimeZone(latitude, longitude).Result;
-    }
-    
-    private static DateTime ConvertToUtc(string date, string timezoneId)
-    {
-        var dateTime = DateTime.Parse(date);
-        
-        var timezoneInfo = TZConvert.GetTimeZoneInfo(timezoneId);
-
-        return TimeZoneInfo.ConvertTimeToUtc(dateTime, timezoneInfo);
     }
 
     private static (double latitude, double longitude) SeparateLocation(string location)

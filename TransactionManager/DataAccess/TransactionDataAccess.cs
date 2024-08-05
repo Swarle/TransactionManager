@@ -40,4 +40,60 @@ public class TransactionDataAccess : ITransactionDataAccess
         
         _logger.LogInformation("The request was successfully executed, number of affected rows {AffectedRowsCount}", affectedRowsCount);
     }
+
+    public async Task<List<Transaction>> GetAllTransactionsAsync(CancellationToken cancellationToken)
+    {
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        const string request = @"SELECT ""TransactionId"", ""Name"", ""Email"",
+                                    ""Amount"", ""TransactionDateUtc"",""TransactionTimezone"", ""Latitude"", ""Longitude""
+	                                FROM ""Transactions"";";
+        
+        _logger.LogInformation("Executing SQL: {Request}", request);
+
+        var transactions = await connection.QueryAsync<Transaction>(request);
+
+        return transactions.ToList();
+    }
+
+    public async Task<List<Transaction>> GetAllTransactionsAsync(DateTime startDate, DateTime endDate, string timezoneId,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        const string request = @"SELECT ""TransactionId"", ""Name"", ""Email"",
+                                    ""Amount"", ""TransactionDateUtc"",""TransactionTimezone"", ""Latitude"", ""Longitude""
+	                                FROM ""Transactions""
+                                    WHERE (""TransactionDateUtc"" AT TIME ZONE 'UTC' AT TIME ZONE @TimeZoneId) 
+                                        BETWEEN @StartDate AND @EndDate;";
+
+        var parameters = new { StartDate = startDate, EndDate = endDate, TimeZoneId = timezoneId };
+        
+        _logger.LogInformation("Executing SQL: {Request}", request);
+
+        var transactions = await connection.QueryAsync<Transaction>(request, parameters);
+
+        return transactions.ToList();
+    }
+    
+    public async Task<List<Transaction>> GetAllTransactionsAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    {
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        const string request = @"SELECT ""TransactionId"", ""Name"", ""Email"",
+                                    ""Amount"", ""TransactionDateUtc"",""TransactionTimezone"", ""Latitude"", ""Longitude""
+	                                FROM ""Transactions""
+                                    WHERE ""TransactionDateUtc"" BETWEEN @StartDate AND @EndDate;";
+
+        var parameters = new { StartDate = startDate, EndDate = endDate};
+        
+        _logger.LogInformation("Executing SQL: {Request}", request);
+
+        var transactions = await connection.QueryAsync<Transaction>(request, parameters);
+
+        return transactions.ToList();
+    }
 }
