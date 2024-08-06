@@ -1,6 +1,6 @@
 ﻿namespace TransactionManager.Dto;
 
-public class ExportTransactionDto
+public class TransactionDateRangeDto
 {
     public DateTime StartDate { get; set; }
     

@@ -34,7 +34,7 @@ public class TransactionService : ITransactionService
         await _transactionDataAccess.UpsertTransactionsAsync(transactions, cancellationToken);
     }
 
-    public async Task<byte[]> ExportTransactionsAsync(ExportTransactionDto? exportTransactionDto, CancellationToken cancellationToken)
+    public async Task<byte[]> ExportTransactionsAsync(TransactionDateRangeDto? exportTransactionDto, CancellationToken cancellationToken)
     {
         List<Transaction> transactions;
 
@@ -45,22 +45,31 @@ public class TransactionService : ITransactionService
                 exportTransactionDto.EndDate, cancellationToken);
 
         if (transactions.Count == 0)
-            throw new HttpException(HttpStatusCode.NotFound);
+            throw new HttpException(HttpStatusCode.NotFound, "No transaction was found");
         
         var excelStream = ExcelConverter.ConvertToExcel(transactions);
         
         return excelStream;
     }
 
+    public async Task<List<TransactionDto>> GetTransactionsByUserTimezoneAsync(TransactionDateRangeDto transactionDateRangeDto,
+        CancellationToken cancellationToken)
+    {
+        var transactions =
+            await RequestTransactionsByUserTimezone(transactionDateRangeDto.StartDate, transactionDateRangeDto.EndDate,
+                cancellationToken);
+
+        if (transactions.Count == 0)
+            throw new HttpException(HttpStatusCode.NotFound, "No transaction was found");
+
+        var transactionsDto = TransactionMapper.MapTransactionsToTransactionsDto(transactions);
+
+        return transactionsDto;
+    }
+
     private async Task<List<Transaction>> GetTransactionsByDateAsync(DateTime startDate, DateTime endDate,
         CancellationToken cancellationToken)
     {
-        if (startDate > endDate)
-            throw new HttpException(HttpStatusCode.BadRequest, "Start Date should be less then End Date");
-        
-        if (startDate.Kind != endDate.Kind)
-            throw new HttpException(HttpStatusCode.BadRequest, "Start Date and End Date must have the same kind");
-
         List<Transaction> transactions;
         
         if (startDate.Kind == DateTimeKind.Utc && endDate.Kind == DateTimeKind.Utc)
@@ -69,11 +78,20 @@ public class TransactionService : ITransactionService
         }
         else
         {
-            var userTimezoneId = _httpContext.Request.GetTimezoneFromHeader();
-
-            transactions = await _transactionDataAccess.GetAllTransactionsAsync(startDate,
-                endDate, userTimezoneId, cancellationToken);
+            transactions = await RequestTransactionsByUserTimezone(startDate, endDate, cancellationToken);
         }
+
+        return transactions;
+    }
+
+    private async Task<List<Transaction>> RequestTransactionsByUserTimezone(DateTime startDate,
+        DateTime endDate,
+        CancellationToken cancellationToken)
+    {
+        var userTimezoneId = _httpContext.Request.GetTimezoneFromHeader();
+
+        var transactions = await _transactionDataAccess.GetAllTransactionsAsync(startDate,
+            endDate, userTimezoneId, cancellationToken);
 
         return transactions;
     }

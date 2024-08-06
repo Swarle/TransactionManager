@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using TransactionManager.Behaviors;
 using TransactionManager.Extensions;
 using TransactionManager.Middlewares;
 
@@ -11,6 +14,9 @@ public class Program
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
+        
+        builder.Services.AddFluentValidationAutoValidation(configuration =>
+            configuration.OverrideDefaultResultFactoryWith<CustomResultFactory>());
 
         builder.Services.AddHttpContextAccessor();
         

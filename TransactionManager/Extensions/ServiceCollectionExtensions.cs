@@ -1,8 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using TransactionManager.Behaviors;
 using TransactionManager.DataAccess;
 using TransactionManager.DataAccess.Interfaces;
 using TransactionManager.Helpers;
+using TransactionManager.Helpers.Validators;
 using TransactionManager.Persistence;
 using TransactionManager.Services;
 using TransactionManager.Services.Interfaces;
@@ -28,6 +32,8 @@ public static class ServiceCollectionExtensions
         
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<ITransactionDataAccess, TransactionDataAccess>();
+
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         
         return services;
     }

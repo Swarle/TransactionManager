@@ -2,7 +2,7 @@
 using Swashbuckle.AspNetCore.SwaggerGen;
 using TransactionManager.StaticConstants;
 
-namespace TransactionManager.Helpers;
+namespace TransactionManager.Behaviors;
 
 public class AddTimezoneHeaderParameter : IOperationFilter
 {

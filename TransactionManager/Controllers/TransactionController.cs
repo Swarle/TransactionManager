@@ -1,7 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Attributes;
 using TransactionManager.Dto;
-using TransactionManager.Entities;
 using TransactionManager.Services.Interfaces;
 using TransactionManager.StaticConstants;
 
@@ -28,11 +27,22 @@ public class TransactionController : ControllerBase
     }
 
     [HttpPost("export/excel")]
-    public async Task<ActionResult<byte[]>> ExportTransactionsAsync([FromBody] ExportTransactionDto? exportTransactionDto,
+    public async Task<ActionResult<byte[]>> ExportTransactionsAsync([FromBody] TransactionDateRangeDto? transactionDateRangeDto,
         CancellationToken cancellationToken = default)
     {
-        var stream = await _transactionService.ExportTransactionsAsync(exportTransactionDto, cancellationToken);
+        var stream = await _transactionService.ExportTransactionsAsync(transactionDateRangeDto, cancellationToken);
 
         return File(stream, SD.ExcelContentType, $"transactions.xlsx");
+    }
+
+    [HttpPost("get-all/by-user-timezone")]
+    public async Task<ActionResult<List<TransactionDto>>> GetTransactionsByUserTimezone(
+        [FromBody] TransactionDateRangeDto transactionDateRangeDto,
+        CancellationToken cancellationToken = default)
+    {
+        var transactions =
+            await _transactionService.GetTransactionsByUserTimezoneAsync(transactionDateRangeDto, cancellationToken);
+
+        return Ok(transactions);
     }
 }
