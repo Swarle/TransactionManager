@@ -27,14 +27,15 @@ public class TransactionService : ITransactionService
                        throw new NullReferenceException("HttpContextAccessor does`t have context");
     }
 
-    public async Task UpsertAsync(IFormFile file, CancellationToken cancellationToken)
+    public async Task UpsertAsync(IFormFile file, CancellationToken cancellationToken = default)
     {
         var transactions = await ParseFromCsvToEntityList(file);
         
         await _transactionDataAccess.UpsertTransactionsAsync(transactions, cancellationToken);
     }
 
-    public async Task<byte[]> ExportTransactionsAsync(TransactionDateRangeDto? exportTransactionDto, CancellationToken cancellationToken)
+    public async Task<byte[]> ExportTransactionsAsync(TransactionDateRangeDto? exportTransactionDto,
+        CancellationToken cancellationToken = default)
     {
         List<Transaction> transactions;
 
@@ -52,23 +53,75 @@ public class TransactionService : ITransactionService
         return excelStream;
     }
 
-    public async Task<List<TransactionDto>> GetTransactionsByUserTimezoneAsync(TransactionDateRangeDto transactionDateRangeDto,
-        CancellationToken cancellationToken)
+    public async Task<List<UserTimezoneTransactionDto>> GetTransactionsForUserTimezoneAsync(
+        TransactionDateRangeDto transactionDateRangeDto,
+        CancellationToken cancellationToken = default)
     {
+        if (transactionDateRangeDto.StartDate.Kind == DateTimeKind.Utc ||
+            transactionDateRangeDto.EndDate.Kind == DateTimeKind.Utc)
+            throw new HttpException(HttpStatusCode.BadRequest, "Time must be local, not UTC");
+        
+        var userTimezoneId = _httpContext.Request.GetTimezoneFromHeader();
+
+        var startDateUtc = TimeHelper.ConvertToUtc(transactionDateRangeDto.StartDate, userTimezoneId);
+        var endDateUtc = TimeHelper.ConvertToUtc(transactionDateRangeDto.EndDate, userTimezoneId);
+        
         var transactions =
-            await RequestTransactionsByUserTimezone(transactionDateRangeDto.StartDate, transactionDateRangeDto.EndDate,
+            await _transactionDataAccess.GetAllTransactionsForUserTimezoneAsync(
+                startDateUtc,
+                endDateUtc,
+                userTimezoneId,
                 cancellationToken);
 
         if (transactions.Count == 0)
-            throw new HttpException(HttpStatusCode.NotFound, "No transaction was found");
+            throw new HttpException(HttpStatusCode.NotFound, "No transactions found for this date range");
 
-        var transactionsDto = TransactionMapper.MapTransactionsToTransactionsDto(transactions);
+        var transactionsDto =
+            TransactionMapper.MapTransactionsToDto(transactions);
+
+        return transactionsDto;
+    }
+
+    public async Task<List<ClientTimezoneTransactionDto>> GetTransactionsForClientTimezoneAsync(
+        TransactionDateRangeDto transactionDateRangeDto,
+        CancellationToken cancellationToken = default)
+    {
+        var transactions =
+            await _transactionDataAccess.GetAllTransactionsForClientTimezoneAsync(
+                transactionDateRangeDto.StartDate,
+                transactionDateRangeDto.EndDate,
+                cancellationToken);
+        
+        if (transactions.Count == 0)
+            throw new HttpException(HttpStatusCode.NotFound, "No transactions found for this date range");
+
+        var transactionsDto =
+            TransactionMapper.MapTransactionsToDto(transactions);
+
+        return transactionsDto;
+    }
+
+    public async Task<List<ClientTimezoneTransactionDto>> GetTransactionsForClientTimezoneAsync(TransactionByDateDto transactionByDateDto,
+        CancellationToken cancellationToken = default)
+    {
+        var transactions =
+            await _transactionDataAccess.GetAllTransactionsForClientTimezoneAsync(
+                transactionByDateDto.Year,
+                transactionByDateDto.Month,
+                transactionByDateDto.Day,
+                cancellationToken);
+        
+        if(transactions.Count == 0)
+            throw new HttpException(HttpStatusCode.NotFound, "No transactions found for this date");
+
+        var transactionsDto =
+            TransactionMapper.MapTransactionsToDto(transactions);
 
         return transactionsDto;
     }
 
     private async Task<List<Transaction>> GetTransactionsByDateAsync(DateTime startDate, DateTime endDate,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         List<Transaction> transactions;
         
@@ -78,24 +131,16 @@ public class TransactionService : ITransactionService
         }
         else
         {
-            transactions = await RequestTransactionsByUserTimezone(startDate, endDate, cancellationToken);
+            var userTimezoneId = _httpContext.Request.GetTimezoneFromHeader();
+
+            transactions = await _transactionDataAccess.GetAllTransactionsAsync(startDate,
+                endDate, userTimezoneId, cancellationToken);
+
         }
 
         return transactions;
     }
-
-    private async Task<List<Transaction>> RequestTransactionsByUserTimezone(DateTime startDate,
-        DateTime endDate,
-        CancellationToken cancellationToken)
-    {
-        var userTimezoneId = _httpContext.Request.GetTimezoneFromHeader();
-
-        var transactions = await _transactionDataAccess.GetAllTransactionsAsync(startDate,
-            endDate, userTimezoneId, cancellationToken);
-
-        return transactions;
-    }
-
+    
     private static async Task<List<Transaction>> ParseFromCsvToEntityList(IFormFile file)
     {
         try

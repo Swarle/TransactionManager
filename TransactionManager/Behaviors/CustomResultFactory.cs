@@ -11,7 +11,13 @@ public class CustomResultFactory : IFluentValidationAutoValidationResultFactory
     {
         var transformedErrors = validationProblemDetails?.Errors
             .ToDictionary(
-                kvp => char.ToLowerInvariant(kvp.Key[0]) + kvp.Key.Substring(1),
+                kvp => 
+                {
+                    if (kvp.Key.Length > 0)
+                        return char.ToLowerInvariant(kvp.Key[0]) + kvp.Key.Substring(1);
+                    else
+                        return kvp.Key;
+                },
                 kvp => kvp.Value
             );
         

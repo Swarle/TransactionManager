@@ -28,21 +28,43 @@ public class TransactionController : ControllerBase
 
     [HttpPost("export/excel")]
     public async Task<ActionResult<byte[]>> ExportTransactionsAsync([FromBody] TransactionDateRangeDto? transactionDateRangeDto,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var stream = await _transactionService.ExportTransactionsAsync(transactionDateRangeDto, cancellationToken);
 
         return File(stream, SD.ExcelContentType, $"transactions.xlsx");
     }
 
-    [HttpPost("get-all/by-user-timezone")]
-    public async Task<ActionResult<List<TransactionDto>>> GetTransactionsByUserTimezone(
+    [HttpPost("get-all/for-user-timezone")]
+    public async Task<ActionResult<List<TransactionDto>>> GetTransactionsForUserTimezoneAsync(
         [FromBody] TransactionDateRangeDto transactionDateRangeDto,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var transactions =
-            await _transactionService.GetTransactionsByUserTimezoneAsync(transactionDateRangeDto, cancellationToken);
+            await _transactionService.GetTransactionsForUserTimezoneAsync(transactionDateRangeDto, cancellationToken);
 
         return Ok(transactions);
+    }
+
+    [HttpPost("get-all/for-client-timezone")]
+    public async Task<ActionResult<List<ClientTimezoneTransactionDto>>> GetTransactionsForClientTimezoneAsync(
+        [FromBody] TransactionDateRangeDto transactionDateRangeDto,
+        CancellationToken cancellationToken)
+    {
+        var transactions =
+            await _transactionService.GetTransactionsForClientTimezoneAsync(transactionDateRangeDto, cancellationToken);
+
+        return Ok(transactions);
+    }
+
+    [HttpPost("get-all/by-date")]
+    public async Task<ActionResult<List<ClientTimezoneTransactionDto>>> GetTransactionsForClientTimezoneAsync(
+        [FromBody] TransactionByDateDto transactionByDateDto,
+        CancellationToken cancellationToken)
+    {
+        var transaction =
+            await _transactionService.GetTransactionsForClientTimezoneAsync(transactionByDateDto, cancellationToken);
+
+        return Ok(transaction);
     }
 }

@@ -5,8 +5,6 @@ using Microsoft.OpenApi.Models;
 using TransactionManager.Behaviors;
 using TransactionManager.DataAccess;
 using TransactionManager.DataAccess.Interfaces;
-using TransactionManager.Helpers;
-using TransactionManager.Helpers.Validators;
 using TransactionManager.Persistence;
 using TransactionManager.Services;
 using TransactionManager.Services.Interfaces;

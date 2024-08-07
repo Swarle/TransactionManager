@@ -12,6 +12,13 @@ public static class TimeHelper
 
         return TimeZoneInfo.ConvertTimeToUtc(dateTime, timezoneInfo);
     }
+    
+    public static DateTime ConvertToUtc(DateTime date, string timezoneId)
+    {
+        var timezoneInfo = TZConvert.GetTimeZoneInfo(timezoneId);
+
+        return TimeZoneInfo.ConvertTimeToUtc(date, timezoneInfo);
+    }
 
     public static DateTime ConvertToLocal(DateTime date, string timezoneId)
     {
