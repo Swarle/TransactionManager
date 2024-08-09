@@ -12,8 +12,20 @@ using TransactionManager.StaticConstants;
 
 namespace TransactionManager.Extensions;
 
+/// <summary>
+/// Provides extension methods to <see cref="IServiceCollection"/>
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Extension method for IServiceCollection that adds application services
+    /// </summary>
+    /// <param name="services">An <see cref="IServiceCollection"/> object.</param>
+    /// <param name="configuration">An <see cref="IConfiguration"/> object.</param>
+    /// <returns>An <see cref="IServiceCollection"/> object.</returns>
+    /// <exception cref="NullReferenceException">
+    /// Throws an exception if no connection string was defined
+    /// </exception>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services,
         IConfiguration configuration)
     {
@@ -35,7 +47,12 @@ public static class ServiceCollectionExtensions
         
         return services;
     }
-
+    
+    /// <summary>
+    /// An extension method that adds a configurable SwaggerGen
+    /// </summary>
+    /// <param name="services">An <see cref="IServiceCollection"/> object.</param>
+    /// <returns>An <see cref="IServiceCollection"/> object.</returns>
     public static IServiceCollection AddSwaggerGenConfigured(this IServiceCollection services)
     {
         services.AddSwaggerGen(opt =>
@@ -47,6 +64,10 @@ public static class ServiceCollectionExtensions
             });
             
             opt.OperationFilter<AddTimezoneHeaderParameter>();
+            
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            opt.IncludeXmlComments(xmlPath);
         });
         
         return services;

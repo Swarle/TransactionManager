@@ -1,5 +1,9 @@
 ﻿namespace TransactionManager.Entities.ModifiedEntities;
 
+/// <summary>
+/// Represents a transaction entity with additional information for the user's timezone.
+/// This class is used to hold the results returned from queries that include user-specific timezone conversions.
+/// </summary>
 public class UserTimezoneTransaction
 {
     public string TransactionId { get; set; } = null!;

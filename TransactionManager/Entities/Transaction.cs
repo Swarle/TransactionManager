@@ -1,5 +1,9 @@
 ﻿namespace TransactionManager.Entities;
 
+/// <summary>
+/// Represents a transaction entity in the system.
+/// This class is mapped to a database table and contains details about individual transactions.
+/// </summary>
 public class Transaction
 {
     public string TransactionId { get; set; } = null!;

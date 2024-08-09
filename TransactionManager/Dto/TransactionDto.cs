@@ -1,5 +1,8 @@
 ﻿namespace TransactionManager.Dto;
 
+/// <summary>
+/// Represents a Data Transfer Object (DTO) for a transaction
+/// </summary>
 public class TransactionDto
 {
     public string TransactionId { get; set; } = null!;

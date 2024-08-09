@@ -1,5 +1,9 @@
 ﻿namespace TransactionManager.StaticConstants;
 
+/// <summary>
+/// A static class containing constant values
+/// and configuration keys used throughout the application.
+/// </summary>
 public static class SD
 {
     public static string DefaultConnectionStringName => "DefaultConnection";

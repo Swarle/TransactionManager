@@ -3,6 +3,14 @@ using TransactionManager.StaticConstants;
 
 namespace TransactionManager.Exceptions;
 
+/// <summary>
+/// Represents an error that occurred while processing the request
+/// (e.g BadRequest, NotFound, Unauthorized)
+/// </summary>
+/// <remarks>
+/// Accepts an error code, an errored string, or a dictionary <see cref="Dictionary{TKey, TValue}"/>
+/// also takes an object type
+/// </remarks>
 public class HttpException : Exception
 {
     public HttpException(HttpStatusCode statusCode)
